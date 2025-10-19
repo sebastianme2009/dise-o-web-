@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculadora de Cuenta y Pago</title>
+    <!-- Carga de Tailwind CSS para un diseño moderno y responsivo -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Estilos personalizados para la tipografía y el fondo */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f7f9fb; /* Fondo muy claro y neutro */
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 1rem;
+        }
+        .card {
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        /* Clase para animación simple en la respuesta */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="card bg-white p-8 md:p-10 rounded-xl max-w-sm w-full transition duration-300">
+        <h1 class="text-3xl font-extrabold text-gray-800 mb-6 text-center">Calculadora de Cuenta</h1>
+        <p class="text-sm text-gray-500 mb-6 text-center">Calcula tu monto total, incluyendo un impuesto fijo del 10%.</p>
+
+        <!-- Formulario de Entrada -->
+        <div class="space-y-4">
+            <div>
+                <label for="monto" class="block text-sm font-medium text-gray-700 mb-1">Monto Total de la Cuenta</label>
+                <div class="relative rounded-lg shadow-sm">
+                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                        <span class="text-gray-500 sm:text-sm">$</span>
+                    </div>
+                    <!-- Al cambiar el input, se ocultan los resultados y mensajes -->
+                    <input type="number" id="monto" min="0" step="0.01" placeholder="Ej: 50.00"
+                           class="block w-full pl-7 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-slate-500 focus:border-slate-500 text-base"
+                           oninput="document.getElementById('pago-message').classList.add('hidden'); document.getElementById('results-section').classList.add('hidden');">
+                </div>
+            </div>
+
+            <!-- Botón de CÁLCULO (Color Neutro: Slate) -->
+            <button id="calculate-button" onclick="calculate()"
+                    class="w-full flex justify-center py-3 px-4 border border-transparent rounded-lg shadow-lg text-lg font-semibold text-white bg-slate-600 hover:bg-slate-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-500 transition duration-150 transform hover:scale-[1.01]">
+                Calcular Impuesto
+            </button>
+        </div>
+
+        <!-- Sección de Resultados (Inicialmente oculta) -->
+        <div id="results-section" class="hidden mt-8 p-5 bg-slate-50 rounded-xl border border-slate-200 fade-in">
+            <h2 class="text-xl font-bold text-slate-700 mb-3">Detalle del Pago</h2>
+            <div class="space-y-1 text-sm text-gray-700">
+                <p class="flex justify-between">
+                    <span>Monto Inicial:</span>
+                    <span id="initial-amount" class="font-medium text-gray-800"></span>
+                </p>
+                <p class="flex justify-between">
+                    <span>Impuesto (10.0%):</span>
+                    <span id="tax-amount" class="font-medium text-teal-600"></span>
+                </p>
+                <div class="border-t border-slate-300 pt-2 mt-2">
+                    <p class="flex justify-between text-lg font-extrabold text-slate-800">
+                        <span>Total a Pagar:</span>
+                        <span id="total-amount"></span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- NUEVO Botón de PAGO (Botón secundario de acción) -->
+            <button onclick="completePayment()"
+                    class="w-full mt-4 flex justify-center py-2 px-4 border border-transparent rounded-lg shadow-md text-base font-semibold text-white bg-teal-600 hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500 transition duration-150">
+                Pagar
+            </button>
+        </div>
+
+        <!-- Mensaje de Agradecimiento (JS Dinámico) -->
+        <div id="pago-message" class="mt-6 text-center text-xl font-bold text-teal-700 hidden fade-in">
+            <!-- El mensaje se insertará aquí con JavaScript -->
+        </div>
+
+        <!-- Sección de Errores -->
+        <div id="error-message" class="mt-4 text-center text-red-600 font-medium hidden">
+            <!-- Los errores se mostrarán aquí -->
+        </div>
+    </div>
+
+    <!-- El código JavaScript (simulando backend y frontend dinámico) -->
+    <script>
+        // Función para formatear un número como moneda
+        const formatCurrency = (value) => {
+            return new Intl.NumberFormat('es-ES', {
+                style: 'currency',
+                currency: 'USD' // Usando USD como ejemplo
+            }).format(value);
+        };
+
+        // Función que simula el cálculo del impuesto (rol del PHP)
+        const calculateTip = (amount) => {
+            const taxRate = 0.10; // Impuesto fijo del 10%
+            const tax = amount * taxRate;
+            const total = amount + tax;
+            
+            // Redondear a dos decimales para precisión de moneda
+            return { tax: Math.round(tax * 100) / 100, total: Math.round(total * 100) / 100 };
+        };
+
+        // Función principal que maneja la interacción del botón "Calcular Impuesto"
+        function calculate() {
+            const inputElement = document.getElementById('monto');
+            const monto = parseFloat(inputElement.value);
+            const resultsSection = document.getElementById('results-section');
+            const errorElement = document.getElementById('error-message');
+            const messageElement = document.getElementById('pago-message');
+
+            // Limpiar mensajes anteriores
+            errorElement.classList.add('hidden');
+            resultsSection.classList.add('hidden');
+            messageElement.classList.add('hidden');
+            messageElement.innerHTML = '';
+
+            // Validar la entrada
+            if (isNaN(monto) || monto <= 0) {
+                errorElement.textContent = 'Por favor, introduce un monto válido y positivo.';
+                errorElement.classList.remove('hidden');
+                return;
+            }
+
+            // 1. Realizar el Cálculo (Simulación de PHP)
+            const { tax, total } = calculateTip(monto);
+
+            // 2. Mostrar los Resultados
+            document.getElementById('initial-amount').textContent = formatCurrency(monto);
+            document.getElementById('tax-amount').textContent = formatCurrency(tax);
+            document.getElementById('total-amount').textContent = formatCurrency(total);
+            
+            resultsSection.classList.remove('hidden');
+        }
+
+        // Nueva función para simular el pago después del cálculo
+        function completePayment() {
+            const resultsSection = document.getElementById('results-section');
+            const messageElement = document.getElementById('pago-message');
+            const inputElement = document.getElementById('monto');
+
+            // Ocultar resultados y el botón de pagar
+            resultsSection.classList.add('hidden');
+            
+            // Mostrar mensaje de éxito
+            messageElement.textContent = '✅ ¡Pago Exitoso! ¡Gracias por su preferencia!';
+            messageElement.classList.remove('hidden');
+
+            // Limpiar el input
+            inputElement.value = '';
+        }
+    </script>
+</body>
+</html>
